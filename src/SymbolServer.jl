@@ -19,7 +19,7 @@ mutable struct SymbolServerInstance
     store_path::String
     symbolcache_upstream::String
 
-    function SymbolServerInstance(depot_path::String="", store_path::Union{String,Nothing}=nothing; symbolcache_upstream = nothing)
+    function SymbolServerInstance(depot_path::String="", store_path::Union{String,Nothing}=nothing; symbolcache_upstream=nothing)
         if symbolcache_upstream === nothing
             symbolcache_upstream = "https://www.julia-vscode.org/symbolcache"
         end
@@ -27,7 +27,7 @@ mutable struct SymbolServerInstance
     end
 end
 
-function getstore(ssi::SymbolServerInstance, environment_path::AbstractString, progress_callback=nothing, error_handler=nothing; download = false)
+function getstore(ssi::SymbolServerInstance, environment_path::AbstractString, progress_callback=nothing, error_handler=nothing; download=false)
     !ispath(environment_path) && return :success, recursive_copy(stdlibs)
 
     # see if we can download any package cache's before
@@ -42,9 +42,9 @@ function getstore(ssi::SymbolServerInstance, environment_path::AbstractString, p
                     if manifest !== nothing
                         @debug "Downloading cache files for manifest at $(manifest_filename)."
                         to_download = collect(validate_disc_store(ssi.store_path, manifest))
-                        batches = Iterators.partition(to_download, max(1, floor(Int, length(to_download)÷50)))
+                        batches = Iterators.partition(to_download, max(1, floor(Int, length(to_download) ÷ 50)))
                         for (i, batch) in enumerate(batches)
-                            percentage = round(Int, 100*(i - 1)/length(batches))
+                            percentage = round(Int, 100 * (i - 1) / length(batches))
                             progress_callback !== nothing && progress_callback("Downloading caches...", percentage)
                             @sync for pkg in batch
                                 @async begin
@@ -131,7 +131,7 @@ function getstore(ssi::SymbolServerInstance, environment_path::AbstractString, p
         end
     end
     take!(server_is_ready)
-    p = open(pipeline(Cmd(`$jl_cmd --code-coverage=$(use_code_coverage==0 ? "none" : "user") --startup-file=no --compiled-modules=no --history-file=no --project=$environment_path $server_script $(ssi.store_path) $pipename`, env=env_to_use),  stderr=stderr_for_client_process), read=true, write=true)
+    p = open(pipeline(Cmd(`$jl_cmd --code-coverage=$(use_code_coverage==0 ? "none" : "user") --startup-file=no --compiled-modules=no --history-file=no --project=$environment_path $server_script $(ssi.store_path) $pipename`, env=env_to_use), stderr=stderr_for_client_process), read=true, write=true)
     ssi.process = p
 
     yield()
@@ -150,7 +150,7 @@ function getstore(ssi::SymbolServerInstance, environment_path::AbstractString, p
     else
         @debug "SymbolStore: store failure"
         if currently_loading_a_package
-            return :package_load_crash, (package_name = current_package_name, stderr = stderr_for_client_process)
+            return :package_load_crash, (package_name=current_package_name, stderr=stderr_for_client_process)
         else
             return :failure, stderr_for_client_process
         end
@@ -171,7 +171,8 @@ function pipe_name()
         # Try to use /tmp and if that fails, hope the long pipe name works anyway
         maybe = "/tmp/" * prefix * uuid
         try
-            touch(maybe); rm(maybe) # Check permissions on this path
+            touch(maybe)
+            rm(maybe) # Check permissions on this path
             pipename = maybe
         catch
         end
@@ -179,7 +180,7 @@ function pipe_name()
     return pipename
 end
 
-function load_project_packages_into_store!(ssi::SymbolServerInstance, environment_path, store, progress_callback = nothing)
+function load_project_packages_into_store!(ssi::SymbolServerInstance, environment_path, store, progress_callback=nothing)
     project_filename = isfile(joinpath(environment_path, "JuliaProject.toml")) ? joinpath(environment_path, "JuliaProject.toml") : joinpath(environment_path, "Project.toml")
     project = try
         Pkg.API.read_project(project_filename)
@@ -203,7 +204,7 @@ end
 
 Tries to load the on-disc stored cache for a package (uuid). Attempts to generate (and save to disc) a new cache if the file does not exist or is unopenable.
 """
-function load_package_from_cache_into_store!(ssi::SymbolServerInstance, uuid::UUID, environment_path, manifest, store, progress_callback = nothing, percentage = missing)
+function load_package_from_cache_into_store!(ssi::SymbolServerInstance, uuid::UUID, environment_path, manifest, store, progress_callback=nothing, percentage=missing)
     yield()
     isinmanifest(manifest, uuid) || return
     pe = frommanifest(manifest, uuid)
@@ -252,7 +253,7 @@ end
 function clear_disc_store(ssi::SymbolServerInstance)
     for f in readdir(ssi.store_path)
         if occursin(f, "ABCDEFGHIJKLMNOPQRSTUVWXYZ")
-            rm(joinpath(ssi.store_path, f), recursive = true)
+            rm(joinpath(ssi.store_path, f), recursive=true)
         end
     end
 end

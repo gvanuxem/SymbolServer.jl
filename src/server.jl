@@ -93,7 +93,7 @@ visited = Base.IdSet{Module}([Base, Core])
 
 # Load all packages together
 for (i, uuid) in enumerate(packages_to_load)
-    load_package(ctx, uuid, conn, LoadingBay, round(Int, 100*(i - 1)/length(packages_to_load)))
+    load_package(ctx, uuid, conn, LoadingBay, round(Int, 100 * (i - 1) / length(packages_to_load)))
 
     # XXX: The following *may* duplicate some work, but we want to make sure that interrupts of
     #      the SymbolServer process don't invalidate *all* work done (which would happen when only
@@ -104,12 +104,12 @@ for (i, uuid) in enumerate(packages_to_load)
 
     # Populate the above with symbols, skipping modules that don't need caching.
     # symbols (env_symbols)
-     # don't need to cache these each time...
+    # don't need to cache these each time...
     for (pid, m) in Base.loaded_modules
         if pid.uuid !== nothing &&
-                is_stdlib(pid.uuid) &&
-                isinmanifest(ctx, pid.uuid) &&
-                isfile(joinpath(server.storedir, SymbolServer.get_cache_path(manifest(ctx), pid.uuid)...))
+           is_stdlib(pid.uuid) &&
+           isinmanifest(ctx, pid.uuid) &&
+           isfile(joinpath(server.storedir, SymbolServer.get_cache_path(manifest(ctx), pid.uuid)...))
             push!(visited, m)
             delete!(env_symbols, Symbol(pid.name))
         end
